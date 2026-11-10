@@ -179,7 +179,20 @@ class AntigravitySdkClient(
             .post(jsonPayload.toRequestBody("application/json".toMediaTypeOrNull()))
 
         if (apiKey.isNotEmpty()) {
-            builder.addHeader("Authorization", "Bearer $apiKey")
+            when {
+                apiKey.startsWith("AIzaSy") -> {
+                    builder.addHeader("x-goog-api-key", apiKey)
+                }
+                apiKey.startsWith("SAPISIDHASH") -> {
+                    builder.addHeader("Authorization", apiKey)
+                }
+                apiKey.contains("SID=") -> {
+                    builder.addHeader("Cookie", apiKey)
+                }
+                else -> {
+                    builder.addHeader("Authorization", if (apiKey.startsWith("Bearer ")) apiKey else "Bearer $apiKey")
+                }
+            }
         }
 
         httpClient.newCall(builder.build()).enqueue(object : Callback {
