@@ -33,17 +33,27 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace
 
+      - name: Prepare APK Release Files
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
+          echo "Found generated APK: $APK_PATH"
+          cp "$APK_PATH" Google-Antigravity.apk
+          cp "$APK_PATH" Antigravity.apk
+          ls -lh Google-Antigravity.apk Antigravity.apk
+
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Antigravity-Android-Debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: Google-Antigravity
+          path: Google-Antigravity.apk
 
       - name: Create GitHub Release and Attach APK
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/debug/app-debug.apk
+          files: |
+            Google-Antigravity.apk
+            Antigravity.apk
           tag_name: ${{ github.ref_name }}
           name: Google Antigravity Mobile ${{ github.ref_name }}
           body: |
@@ -52,11 +62,15 @@ jobs:
             Android companion app for **Google Antigravity** ([antigravity.google.com](https://antigravity.google.com)).
             
             #### 📱 What's Included:
-            - **Seamless Google Account Authentication** via Chrome Custom Tabs
-            - **Embedded In-App Workspace View** with file chooser and pull-to-refresh
-            - **Push Notifications** support for command approvals and agent task completions
+            - **Official Google Antigravity Brand Icon** (vector + high-density mipmaps)
+            - **Direct In-App Experience** (no launcher chooser)
+            - **Instance Switcher** (Google Cloud Remote Agents & Workstation Daemons)
+            - **Quick Slash Commands Dock** (`/diff`, `/goal`, `/plan`, `/teamwork`, `/grill-me`)
+            - **Voice Mode & Audio** enabled for Gemini Live
+            - **Push Alerts** & File attachment support
             
             #### 📦 Download:
-            - Download `app-debug.apk` below and install on any Android 8.0+ device.
+            - **[Google-Antigravity.apk](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/Google-Antigravity.apk)** (Primary)
+            - **[Antigravity.apk](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/Antigravity.apk)** (Short name)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

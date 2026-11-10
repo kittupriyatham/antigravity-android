@@ -11,8 +11,10 @@ android {
         applicationId = "com.google.antigravity.mobile"
         minSdk = 26
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.2.0"
+
+        setProperty("archivesBaseName", "Google-Antigravity")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -32,6 +34,13 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             isDebuggable = true
+        }
+    }
+
+    applicationVariants.all {
+        outputs.all {
+            val output = this as? com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            output?.outputFileName = "Google-Antigravity.apk"
         }
     }
 
