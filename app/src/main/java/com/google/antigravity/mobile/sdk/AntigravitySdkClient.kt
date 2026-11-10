@@ -11,7 +11,8 @@ import java.util.UUID
 
 class AntigravitySdkClient(
     private var apiKey: String = "",
-    private var daemonUrl: String = ""
+    private var daemonUrl: String = "",
+    private var conversationId: String = ""
 ) {
 
     private val httpClient = OkHttpClient.Builder().build()
@@ -26,13 +27,15 @@ class AntigravitySdkClient(
         fun onError(error: String)
     }
 
-    fun updateConfig(newApiKey: String, newDaemonUrl: String) {
+    fun updateConfig(newApiKey: String, newDaemonUrl: String, newConversationId: String = "") {
         this.apiKey = newApiKey.trim()
         this.daemonUrl = newDaemonUrl.trim()
+        this.conversationId = newConversationId.trim()
     }
 
     fun hasApiKey(): Boolean = apiKey.isNotEmpty()
     fun hasDaemon(): Boolean = daemonUrl.isNotEmpty()
+    fun isAntigravityCloud(): Boolean = daemonUrl.contains("antigravity.google.com")
 
     fun sendPrompt(
         prompt: String,
@@ -40,15 +43,19 @@ class AntigravitySdkClient(
         listener: AgentListener
     ) {
         when {
-            // Mode 1: Direct Personal Gemini API Key (BYOK)
+            // Mode 1: Direct Google Antigravity Cloud (antigravity.google.com)
+            isAntigravityCloud() -> {
+                callAntigravityCloud(prompt, model, listener)
+            }
+            // Mode 2: Direct Personal Gemini API Key (BYOK)
             apiKey.startsWith("AIza") && daemonUrl.isEmpty() -> {
                 callDirectGeminiApi(prompt, model, listener)
             }
-            // Mode 2: Antigravity Agent Daemon (Subscription / Workspace mode)
+            // Mode 3: Local/Self-hosted Antigravity Agent Daemon (agy daemon)
             daemonUrl.isNotEmpty() -> {
                 callAntigravityDaemon(prompt, model, listener)
             }
-            // Mode 3: Interactive SDK Simulation Harness (No key / demo mode)
+            // Mode 4: Interactive SDK Simulation Harness (Offline / demo)
             else -> {
                 simulateAgentInteraction(prompt, model, listener)
             }
@@ -125,6 +132,82 @@ class AntigravitySdkClient(
                 }
             }
         })
+    }
+
+    private fun callAntigravityCloud(
+        prompt: String,
+        model: String,
+        listener: AgentListener
+    ) {
+        val cid = extractConversationId(conversationId)
+        mainHandler.post {
+            listener.onThinkingStep("Connecting to Google Antigravity Cloud (antigravity.google.com)...")
+            if (cid.isNotEmpty()) {
+                listener.onThinkingStep("Attaching to Remote Workspace ($cid)...")
+            } else {
+                listener.onThinkingStep("Starting Cloud Agent conversation...")
+            }
+        }
+
+        val baseUrl = if (daemonUrl.startsWith("http")) daemonUrl else "https://$daemonUrl"
+        val endpoint = if (cid.isNotEmpty()) {
+            "$baseUrl/api/v1/conversations/$cid/messages"
+        } else {
+            "$baseUrl/api/v1/agent/prompt"
+        }
+
+        val escapedPrompt = com.google.gson.Gson().toJson(prompt)
+        val jsonPayload = """
+            {
+                "prompt": $escapedPrompt,
+                "model": "$model",
+                "conversation_id": "$cid",
+                "stream": true
+            }
+        """.trimIndent()
+
+        val builder = Request.Builder()
+            .url(endpoint)
+            .addHeader("Content-Type", "application/json")
+            .post(jsonPayload.toRequestBody("application/json".toMediaTypeOrNull()))
+
+        if (apiKey.isNotEmpty()) {
+            builder.addHeader("Authorization", "Bearer $apiKey")
+        }
+
+        httpClient.newCall(builder.build()).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                mainHandler.post {
+                    listener.onThinkingStep("Antigravity Cloud unreachable (${e.message}). Falling back to simulation.")
+                    simulateAgentInteraction(prompt, model, listener)
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (!response.isSuccessful) {
+                    mainHandler.post {
+                        listener.onThinkingStep("Cloud session returned ${response.code}. Switching to SDK fallback.")
+                        simulateAgentInteraction(prompt, model, listener)
+                    }
+                    return
+                }
+
+                val body = response.body?.string() ?: ""
+                mainHandler.post {
+                    listener.onCompleted(body)
+                }
+            }
+        })
+    }
+
+    private fun extractConversationId(raw: String): String {
+        val trimmed = raw.trim()
+        if (trimmed.isEmpty()) return ""
+        return if (trimmed.contains("/c/")) {
+            trimmed.substringAfterLast("/c/").substringBefore("?").substringBefore("/")
+        } else {
+            trimmed
+        }
     }
 
     private fun callAntigravityDaemon(

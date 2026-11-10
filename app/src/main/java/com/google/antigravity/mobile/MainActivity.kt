@@ -167,6 +167,12 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Artifact code copied to clipboard", Toast.LENGTH_SHORT).show()
         }
 
+        // Cloud Preset Button
+        binding.btnPresetCloud.setOnClickListener {
+            binding.etDaemonEndpoint.setText("https://antigravity.google.com")
+            Toast.makeText(this, "Endpoint set to Google Antigravity Cloud", Toast.LENGTH_SHORT).show()
+        }
+
         // Save Settings
         binding.btnSaveSettings.setOnClickListener {
             saveSettings()
@@ -326,31 +332,37 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadSavedSettings() {
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val endpoint = prefs.getString(KEY_ENDPOINT, "") ?: ""
+        val endpoint = prefs.getString(KEY_ENDPOINT, "https://antigravity.google.com") ?: "https://antigravity.google.com"
         val apiKey = prefs.getString(KEY_API_KEY, "") ?: ""
+        val convId = prefs.getString(KEY_CONVERSATION_ID, "") ?: ""
 
         binding.etDaemonEndpoint.setText(endpoint)
         binding.etApiKey.setText(apiKey)
-        sdkClient.updateConfig(apiKey, endpoint)
+        binding.etConversationId.setText(convId)
+        sdkClient.updateConfig(apiKey, endpoint, convId)
     }
 
     private fun saveSettings() {
         val endpoint = binding.etDaemonEndpoint.text?.toString()?.trim() ?: ""
         val key = binding.etApiKey.text?.toString()?.trim() ?: ""
+        val convId = binding.etConversationId.text?.toString()?.trim() ?: ""
 
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit()
             .putString(KEY_ENDPOINT, endpoint)
             .putString(KEY_API_KEY, key)
+            .putString(KEY_CONVERSATION_ID, convId)
             .apply()
 
-        sdkClient.updateConfig(key, endpoint)
+        sdkClient.updateConfig(key, endpoint, convId)
 
         val statusMsg = when {
+            endpoint.contains("antigravity.google.com") ->
+                "Saved: Google Antigravity Cloud active (antigravity.google.com)"
             key.startsWith("AIza") && endpoint.isEmpty() ->
                 "Saved: Personal Gemini API active (BYOK Mode - personal quota)"
             endpoint.isNotEmpty() ->
-                "Saved: Antigravity Daemon active (Subscription Mode)"
+                "Saved: Antigravity Local Daemon active ($endpoint)"
             else ->
                 "Saved: Interactive Simulation Mode"
         }
@@ -361,5 +373,6 @@ class MainActivity : AppCompatActivity() {
         private const val PREFS_NAME = "antigravity_prefs"
         private const val KEY_ENDPOINT = "daemon_endpoint"
         private const val KEY_API_KEY = "api_key"
+        private const val KEY_CONVERSATION_ID = "conversation_id"
     }
 }

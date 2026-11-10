@@ -443,19 +443,37 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <!-- Quick Preset Action -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Mode 1: Antigravity Daemon (Subscription Mode)"
-                            android:textColor="@color/antigravity_blue_light"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Cloud &amp; Daemon Endpoint"
+                                android:textColor="@color/text_primary"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnPresetCloud"
+                                style="@style/Widget.Material3.Button.TonalButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:text="⚡ Set Cloud"
+                                android:textSize="11sp"
+                                app:cornerRadius="8dp" />
+                        </LinearLayout>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Run 'agy daemon' on your computer or VPS. Uses your Antigravity account credits with full workspace terminal &amp; file capabilities."
+                            android:text="Use https://antigravity.google.com for Google Cloud Agent, or local http://localhost:8080"
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp" />
 
@@ -465,19 +483,20 @@
                             android:layout_height="42dp"
                             android:layout_marginTop="6dp"
                             android:background="@drawable/bg_input_field"
-                            android:hint="e.g. http://192.168.1.10:8080 or tunnel URL"
+                            android:hint="https://antigravity.google.com"
                             android:inputType="textUri"
                             android:paddingHorizontal="12dp"
                             android:textColor="@color/text_primary"
                             android:textColorHint="@color/text_secondary"
                             android:textSize="13sp" />
 
+                        <!-- Conversation ID / Cloud Session -->
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
-                            android:text="Mode 2: Personal Gemini API Key (BYOK Mode)"
-                            android:textColor="@color/antigravity_blue_light"
+                            android:layout_marginTop="14dp"
+                            android:text="Cloud Conversation ID or URL (Optional)"
+                            android:textColor="@color/text_primary"
                             android:textSize="13sp"
                             android:textStyle="bold" />
 
@@ -485,7 +504,38 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Enter your Google AI Studio API key. Uses your personal API quota/billing directly — does NOT use Antigravity credits."
+                            android:text="Paste active conversation ID or URL from antigravity.google.com/c/..."
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+
+                        <EditText
+                            android:id="@+id/etConversationId"
+                            android:layout_width="match_parent"
+                            android:layout_height="42dp"
+                            android:layout_marginTop="6dp"
+                            android:background="@drawable/bg_input_field"
+                            android:hint="e.g. d7e1d19f... or full URL"
+                            android:inputType="textUri"
+                            android:paddingHorizontal="12dp"
+                            android:textColor="@color/text_primary"
+                            android:textColorHint="@color/text_secondary"
+                            android:textSize="13sp" />
+
+                        <!-- Auth Token / API Key -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:text="Session Token or Gemini API Key"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Antigravity Cloud bearer token (uses subscription), or Gemini API key (BYOK mode)."
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp" />
 
@@ -495,7 +545,7 @@
                             android:layout_height="42dp"
                             android:layout_marginTop="6dp"
                             android:background="@drawable/bg_input_field"
-                            android:hint="AIzaSy..."
+                            android:hint="Bearer token or AIzaSy..."
                             android:inputType="textPassword"
                             android:paddingHorizontal="12dp"
                             android:textColor="@color/text_primary"
