@@ -11,7 +11,7 @@ import java.util.UUID
 
 class AntigravitySdkClient(
     private var apiKey: String = "",
-    private var daemonUrl: String = "http://localhost:8080"
+    private var daemonUrl: String = ""
 ) {
 
     private val httpClient = OkHttpClient.Builder().build()
@@ -26,45 +26,141 @@ class AntigravitySdkClient(
         fun onError(error: String)
     }
 
+    fun updateConfig(newApiKey: String, newDaemonUrl: String) {
+        this.apiKey = newApiKey.trim()
+        this.daemonUrl = newDaemonUrl.trim()
+    }
+
+    fun hasApiKey(): Boolean = apiKey.isNotEmpty()
+    fun hasDaemon(): Boolean = daemonUrl.isNotEmpty()
+
     fun sendPrompt(
         prompt: String,
         model: String = "Gemini 4 Argon",
         listener: AgentListener
     ) {
-        // If an API key is provided and endpoint is configured, connect to the Antigravity Agent REST API
-        if (apiKey.isNotEmpty()) {
-            callAntigravityApi(prompt, model, listener)
-        } else {
-            // Native interactive simulation loop implementing the Antigravity SDK harness
-            simulateAgentInteraction(prompt, model, listener)
+        when {
+            // Mode 1: Direct Personal Gemini API Key (BYOK)
+            apiKey.startsWith("AIza") && daemonUrl.isEmpty() -> {
+                callDirectGeminiApi(prompt, model, listener)
+            }
+            // Mode 2: Antigravity Agent Daemon (Subscription / Workspace mode)
+            daemonUrl.isNotEmpty() -> {
+                callAntigravityDaemon(prompt, model, listener)
+            }
+            // Mode 3: Interactive SDK Simulation Harness (No key / demo mode)
+            else -> {
+                simulateAgentInteraction(prompt, model, listener)
+            }
         }
     }
 
-    private fun callAntigravityApi(
+    private fun callDirectGeminiApi(
         prompt: String,
         model: String,
         listener: AgentListener
     ) {
-        val endpoint = "$daemonUrl/api/v1/agent/prompt"
+        mainHandler.post {
+            listener.onThinkingStep("Connecting to Gemini API via personal key (BYOK)...")
+            listener.onThinkingStep("Target Model: $model")
+        }
+
+        val apiModel = when {
+            model.contains("Flash") -> "gemini-2.5-flash"
+            else -> "gemini-2.5-pro"
+        }
+
+        val url = "https://generativelanguage.googleapis.com/v1beta/models/$apiModel:generateContent?key=$apiKey"
+        val escapedPrompt = com.google.gson.Gson().toJson(prompt)
         val jsonPayload = """
             {
-                "prompt": "$prompt",
-                "model": "$model",
-                "stream": true
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": $escapedPrompt}
+                        ]
+                    }
+                ]
             }
         """.trimIndent()
 
         val request = Request.Builder()
-            .url(endpoint)
-            .addHeader("Authorization", "Bearer $apiKey")
+            .url(url)
             .addHeader("Content-Type", "application/json")
             .post(jsonPayload.toRequestBody("application/json".toMediaTypeOrNull()))
             .build()
 
         httpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                // If remote daemon fails, fallback to local SDK simulation
                 mainHandler.post {
+                    listener.onError("Gemini API connection error: ${e.message}")
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val body = response.body?.string() ?: ""
+                if (!response.isSuccessful) {
+                    mainHandler.post {
+                        listener.onError("Gemini API returned code ${response.code}: $body")
+                    }
+                    return
+                }
+
+                try {
+                    val root = com.google.gson.JsonParser.parseString(body).asJsonObject
+                    val text = root.getAsJsonArray("candidates")
+                        ?.get(0)?.asJsonObject
+                        ?.getAsJsonObject("content")
+                        ?.getAsJsonArray("parts")
+                        ?.get(0)?.asJsonObject
+                        ?.get("text")?.asString ?: "No response received"
+
+                    mainHandler.post {
+                        listener.onCompleted(text)
+                    }
+                } catch (e: Exception) {
+                    mainHandler.post {
+                        listener.onCompleted(body)
+                    }
+                }
+            }
+        })
+    }
+
+    private fun callAntigravityDaemon(
+        prompt: String,
+        model: String,
+        listener: AgentListener
+    ) {
+        mainHandler.post {
+            listener.onThinkingStep("Connecting to Antigravity Daemon ($daemonUrl)...")
+            listener.onThinkingStep("Using Antigravity agent subscription session")
+        }
+
+        val endpoint = if (daemonUrl.endsWith("/")) "${daemonUrl}api/v1/agent/prompt" else "$daemonUrl/api/v1/agent/prompt"
+        val escapedPrompt = com.google.gson.Gson().toJson(prompt)
+        val jsonPayload = """
+            {
+                "prompt": $escapedPrompt,
+                "model": "$model",
+                "stream": true
+            }
+        """.trimIndent()
+
+        val builder = Request.Builder()
+            .url(endpoint)
+            .addHeader("Content-Type", "application/json")
+            .post(jsonPayload.toRequestBody("application/json".toMediaTypeOrNull()))
+
+        if (apiKey.isNotEmpty()) {
+            builder.addHeader("Authorization", "Bearer $apiKey")
+        }
+
+        httpClient.newCall(builder.build()).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // If daemon is not reached, inform user with fallback
+                mainHandler.post {
+                    listener.onThinkingStep("Daemon unreachable (${e.message}). Falling back to SDK harness...")
                     simulateAgentInteraction(prompt, model, listener)
                 }
             }
@@ -72,6 +168,7 @@ class AntigravitySdkClient(
             override fun onResponse(call: Call, response: Response) {
                 if (!response.isSuccessful) {
                     mainHandler.post {
+                        listener.onThinkingStep("Daemon returned status ${response.code}. Switching to SDK simulation.")
                         simulateAgentInteraction(prompt, model, listener)
                     }
                     return

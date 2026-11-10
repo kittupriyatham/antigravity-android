@@ -64,6 +64,7 @@ class MainActivity : AppCompatActivity() {
         setupListeners()
         setupSlashCommandChips()
         setupBottomNavigation()
+        loadSavedSettings()
         setupInitialWelcomeMessage()
     }
 
@@ -168,9 +169,7 @@ class MainActivity : AppCompatActivity() {
 
         // Save Settings
         binding.btnSaveSettings.setOnClickListener {
-            val endpoint = binding.etDaemonEndpoint.text?.toString()?.trim() ?: ""
-            val key = binding.etApiKey.text?.toString()?.trim() ?: ""
-            Toast.makeText(this, "Settings saved. Connected to Antigravity runtime.", Toast.LENGTH_SHORT).show()
+            saveSettings()
         }
     }
 
@@ -323,5 +322,44 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun loadSavedSettings() {
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val endpoint = prefs.getString(KEY_ENDPOINT, "") ?: ""
+        val apiKey = prefs.getString(KEY_API_KEY, "") ?: ""
+
+        binding.etDaemonEndpoint.setText(endpoint)
+        binding.etApiKey.setText(apiKey)
+        sdkClient.updateConfig(apiKey, endpoint)
+    }
+
+    private fun saveSettings() {
+        val endpoint = binding.etDaemonEndpoint.text?.toString()?.trim() ?: ""
+        val key = binding.etApiKey.text?.toString()?.trim() ?: ""
+
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putString(KEY_ENDPOINT, endpoint)
+            .putString(KEY_API_KEY, key)
+            .apply()
+
+        sdkClient.updateConfig(key, endpoint)
+
+        val statusMsg = when {
+            key.startsWith("AIza") && endpoint.isEmpty() ->
+                "Saved: Personal Gemini API active (BYOK Mode - personal quota)"
+            endpoint.isNotEmpty() ->
+                "Saved: Antigravity Daemon active (Subscription Mode)"
+            else ->
+                "Saved: Interactive Simulation Mode"
+        }
+        Toast.makeText(this, statusMsg, Toast.LENGTH_LONG).show()
+    }
+
+    companion object {
+        private const val PREFS_NAME = "antigravity_prefs"
+        private const val KEY_ENDPOINT = "daemon_endpoint"
+        private const val KEY_API_KEY = "api_key"
     }
 }

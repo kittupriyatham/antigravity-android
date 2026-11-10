@@ -446,18 +446,26 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Daemon / API Endpoint"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
+                            android:text="Mode 1: Antigravity Daemon (Subscription Mode)"
+                            android:textColor="@color/antigravity_blue_light"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Run 'agy daemon' on your computer or VPS. Uses your Antigravity account credits with full workspace terminal &amp; file capabilities."
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
 
                         <EditText
                             android:id="@+id/etDaemonEndpoint"
                             android:layout_width="match_parent"
                             android:layout_height="42dp"
-                            android:layout_marginTop="8dp"
+                            android:layout_marginTop="6dp"
                             android:background="@drawable/bg_input_field"
-                            android:hint="http://localhost:8080 or agy daemon URL"
+                            android:hint="e.g. http://192.168.1.10:8080 or tunnel URL"
                             android:inputType="textUri"
                             android:paddingHorizontal="12dp"
                             android:textColor="@color/text_primary"
@@ -468,16 +476,24 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="16dp"
-                            android:text="Gemini / Vertex API Key (Optional)"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
+                            android:text="Mode 2: Personal Gemini API Key (BYOK Mode)"
+                            android:textColor="@color/antigravity_blue_light"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Enter your Google AI Studio API key. Uses your personal API quota/billing directly — does NOT use Antigravity credits."
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
 
                         <EditText
                             android:id="@+id/etApiKey"
                             android:layout_width="match_parent"
                             android:layout_height="42dp"
-                            android:layout_marginTop="8dp"
+                            android:layout_marginTop="6dp"
                             android:background="@drawable/bg_input_field"
                             android:hint="AIzaSy..."
                             android:inputType="textPassword"
@@ -502,7 +518,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
-                    android:text="Google Antigravity Mobile v1.3.0"
+                    android:text="Google Antigravity Mobile v1.4.0"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
                 <TextView
