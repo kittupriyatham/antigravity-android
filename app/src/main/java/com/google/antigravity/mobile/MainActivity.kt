@@ -28,13 +28,14 @@ class MainActivity : AppCompatActivity() {
     private val messages = mutableListOf<AgentMessage>()
 
     private val sdkClient = AntigravitySdkClient()
-    private var selectedModel = "Gemini 2.5 Pro"
+    private var selectedModel = "Gemini 4 Argon"
 
     private val supportedModels = arrayOf(
-        "Gemini 2.5 Pro (Recommended)",
-        "Gemini 2.5 Flash",
-        "Claude 3.5 Sonnet",
-        "GPT-4o"
+        "Gemini 4 Argon (Recommended)",
+        "Gemini 3.8 Flash",
+        "Claude Opus 5.5",
+        "Claude Sonnet 5.5",
+        "GPT-OSS 12B"
     )
 
     private val filePickerLauncher =
@@ -152,7 +153,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnViewArtifactCode.setOnClickListener {
             val codeSnippet = """
                 class AntigravityAgent {
-                    val model = "Gemini 2.5 Pro"
+                    val model = "Gemini 4 Argon"
                     val memory = AgentMemory()
                     suspend fun executeTask(goal: String) {
                         autonomousHarness.plan(goal)
@@ -226,10 +227,12 @@ class MainActivity : AppCompatActivity() {
         val welcomeMsg = AgentMessage(
             id = UUID.randomUUID().toString(),
             role = MessageRole.AGENT,
-            content = "Welcome to Google Antigravity on Android. I am your autonomous AI engineering assistant powered by $selectedModel.\n\nYou can ask me to write code, review diffs with /diff, or execute background goals with /goal.",
+            content = "Welcome to Google Antigravity on Android. I am your autonomous AI engineering assistant powered by $selectedModel.\n\nYou can switch between Gemini 4 Argon, Gemini 3.8 Flash, Claude Opus 5.5, Claude Sonnet 5.5, and GPT-OSS 12B anytime using the model selector chip above.",
+            model = selectedModel,
             thinkingSteps = mutableListOf(
                 "Initialized Antigravity SDK harness",
                 "Connected to local agy runtime environment",
+                "Active model: $selectedModel",
                 "Ready for user prompts and tool execution"
             )
         )
@@ -256,7 +259,8 @@ class MainActivity : AppCompatActivity() {
         val agentMsg = AgentMessage(
             id = UUID.randomUUID().toString(),
             role = MessageRole.AGENT,
-            content = "Thinking..."
+            content = "Thinking...",
+            model = selectedModel
         )
         messages.add(agentMsg)
         val agentPos = messages.size - 1
@@ -307,10 +311,11 @@ class MainActivity : AppCompatActivity() {
             .setTitle("Select Antigravity Model")
             .setSingleChoiceItems(supportedModels, currentIdx) { dialog, which ->
                 selectedModel = when (which) {
-                    0 -> "Gemini 2.5 Pro"
-                    1 -> "Gemini 2.5 Flash"
-                    2 -> "Claude 3.5 Sonnet"
-                    else -> "GPT-4o"
+                    0 -> "Gemini 4 Argon"
+                    1 -> "Gemini 3.8 Flash"
+                    2 -> "Claude Opus 5.5"
+                    3 -> "Claude Sonnet 5.5"
+                    else -> "GPT-OSS 12B"
                 }
                 binding.chipModelSelector.text = "$selectedModel ▾"
                 Toast.makeText(this, "Switched model to $selectedModel", Toast.LENGTH_SHORT).show()

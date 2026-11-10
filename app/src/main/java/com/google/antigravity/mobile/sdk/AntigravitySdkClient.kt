@@ -28,7 +28,7 @@ class AntigravitySdkClient(
 
     fun sendPrompt(
         prompt: String,
-        model: String = "Gemini 2.5 Pro",
+        model: String = "Gemini 4 Argon",
         listener: AgentListener
     ) {
         // If an API key is provided and endpoint is configured, connect to the Antigravity Agent REST API

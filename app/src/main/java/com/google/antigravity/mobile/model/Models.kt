@@ -41,6 +41,7 @@ data class AgentMessage(
     val id: String,
     val role: MessageRole,
     var content: String,
+    var model: String = "Gemini 4 Argon",
     val thinkingSteps: MutableList<String> = mutableListOf(),
     var isThinkingExpanded: Boolean = false,
     var toolCall: ToolCall? = null,

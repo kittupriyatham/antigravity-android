@@ -66,6 +66,7 @@ class MessageAdapter(
         fun bind(message: AgentMessage) {
             binding.tvAgentContent.text = message.content
             binding.tvAgentTimestamp.text = timeFormat.format(Date(message.timestamp))
+            binding.tvModelBadge.text = message.model
 
             // 1. Thinking Process
             if (message.thinkingSteps.isNotEmpty()) {

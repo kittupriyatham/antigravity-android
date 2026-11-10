@@ -36,7 +36,7 @@
             android:background="@drawable/ic_launcher_background"
             android:paddingHorizontal="6dp"
             android:paddingVertical="2dp"
-            android:text="Gemini 2.5 Pro"
+            android:text="Gemini 4 Argon"
             android:textColor="@color/text_secondary"
             android:textSize="10sp" />
     </LinearLayout>

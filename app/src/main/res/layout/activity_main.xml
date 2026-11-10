@@ -50,7 +50,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="32dp"
                     android:layout_marginStart="10dp"
-                    android:text="Gemini 2.5 Pro ▾"
+                    android:text="Gemini 4 Argon ▾"
                     android:textColor="@color/antigravity_blue_light"
                     android:textSize="11sp"
                     app:chipBackgroundColor="@color/antigravity_card"
@@ -355,7 +355,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="monospace"
                     android:lineSpacingExtra="2dp"
-                    android:text="antigravity@gemini:~$ agy status\nDaemon: ACTIVE (connected via gRPC)\nWorkspace: /home/antigravity/antigravity-android\nModel: Gemini 2.5 Pro (context 1M tokens)\nReady for autonomous agent tasks.\n\nantigravity@gemini:~$ "
+                    android:text="antigravity@gemini:~$ agy status\nDaemon: ACTIVE (connected via gRPC)\nWorkspace: /home/antigravity/antigravity-android\nModel: Gemini 4 Argon (context 2M tokens)\nReady for autonomous agent tasks.\n\nantigravity@gemini:~$ "
                     android:textColor="#E8EAED"
                     android:textIsSelectable="true"
                     android:textSize="12sp" />
