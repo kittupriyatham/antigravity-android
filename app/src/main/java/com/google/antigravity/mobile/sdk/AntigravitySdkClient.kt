@@ -140,10 +140,12 @@ class AntigravitySdkClient(
         listener: AgentListener
     ) {
         val cid = extractConversationId(conversationId)
+        val pid = extractProjectId(conversationId)
         mainHandler.post {
             listener.onThinkingStep("Connecting to Google Antigravity Cloud (antigravity.google.com)...")
             if (cid.isNotEmpty()) {
-                listener.onThinkingStep("Attaching to Remote Workspace ($cid)...")
+                val projLabel = if (pid.isNotEmpty()) " [Project: $pid]" else ""
+                listener.onThinkingStep("Attaching to Remote Workspace ($cid)$projLabel...")
             } else {
                 listener.onThinkingStep("Starting Cloud Agent conversation...")
             }
@@ -151,9 +153,13 @@ class AntigravitySdkClient(
 
         val baseUrl = if (daemonUrl.startsWith("http")) daemonUrl else "https://$daemonUrl"
         val endpoint = if (cid.isNotEmpty()) {
-            "$baseUrl/api/v1/conversations/$cid/messages"
+            if (pid.isNotEmpty()) {
+                "$baseUrl/api/v1/conversations/$cid/messages?project=$pid"
+            } else {
+                "$baseUrl/api/v1/conversations/$cid/messages"
+            }
         } else {
-            "$baseUrl/api/v1/agent/prompt"
+            if (pid.isNotEmpty()) "$baseUrl/api/v1/agent/prompt?project=$pid" else "$baseUrl/api/v1/agent/prompt"
         }
 
         val escapedPrompt = com.google.gson.Gson().toJson(prompt)
@@ -162,6 +168,7 @@ class AntigravitySdkClient(
                 "prompt": $escapedPrompt,
                 "model": "$model",
                 "conversation_id": "$cid",
+                "project_id": "$pid",
                 "stream": true
             }
         """.trimIndent()
@@ -203,10 +210,19 @@ class AntigravitySdkClient(
     private fun extractConversationId(raw: String): String {
         val trimmed = raw.trim()
         if (trimmed.isEmpty()) return ""
-        return if (trimmed.contains("/c/")) {
-            trimmed.substringAfterLast("/c/").substringBefore("?").substringBefore("/")
+        return when {
+            trimmed.contains("/remote/") -> trimmed.substringAfter("/remote/").substringBefore("?").substringBefore("/")
+            trimmed.contains("/c/") -> trimmed.substringAfter("/c/").substringBefore("?").substringBefore("/")
+            else -> trimmed.substringBefore("?").substringBefore("/")
+        }
+    }
+
+    private fun extractProjectId(raw: String): String {
+        val trimmed = raw.trim()
+        return if (trimmed.contains("project=")) {
+            trimmed.substringAfter("project=").substringBefore("&").substringBefore("#")
         } else {
-            trimmed
+            ""
         }
     }
 
