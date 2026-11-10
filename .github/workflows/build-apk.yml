@@ -81,7 +81,7 @@ jobs:
 
       # 2. Latest Release (tag 'latest')
       - name: Create or Update Latest Release Tag
-        if: startsWith(github.ref, 'refs/tags/v') || github.ref_name == 'latest'
+        if: startsWith(github.ref, 'refs/tags/v') || github.ref_name == 'latest' || github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           files: |
