@@ -38,9 +38,11 @@ jobs:
 
       - name: Prepare APK Release Files
         run: |
+          VERSION=$(grep 'versionName = ' app/build.gradle.kts | head -n 1 | cut -d '"' -f 2)
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Detected version: $VERSION"
           APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
           echo "Found generated APK: $APK_PATH"
-          VERSION="1.5.0"
           cp "$APK_PATH" "Google-Antigravity-v${VERSION}.apk"
           cp "$APK_PATH" "Antigravity-v${VERSION}.apk"
           ls -lh "Google-Antigravity-v${VERSION}.apk" "Antigravity-v${VERSION}.apk"
@@ -48,17 +50,17 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Google-Antigravity-v1.5.0
-          path: Google-Antigravity-v1.5.0.apk
+          name: Google-Antigravity-v${{ env.APP_VERSION }}
+          path: Google-Antigravity-v${{ env.APP_VERSION }}.apk
 
-      # 1. Versioned Release (e.g. v1.5.0)
+      # 1. Versioned Release (e.g. v1.5.1)
       - name: Create or Update Version Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            Google-Antigravity-v1.5.0.apk
-            Antigravity-v1.5.0.apk
+            Google-Antigravity-v${{ env.APP_VERSION }}.apk
+            Antigravity-v${{ env.APP_VERSION }}.apk
           tag_name: ${{ github.ref_name }}
           name: Google Antigravity Mobile ${{ github.ref_name }}
           body: |
@@ -67,18 +69,19 @@ jobs:
             100% Native Android application for **Google Antigravity** ([antigravity.google.com](https://antigravity.google.com)).
             
             #### 📱 Native Features:
-            - **Google Antigravity Cloud Mode**: Connect directly to `https://antigravity.google.com` using your cloud session token and active conversation workspace ID.
+            - **Intelligent Assistant & Diagnostics**: Context-aware assistant answers questions, generates code, and never triggers unrequested tool approvals.
+            - **Google Antigravity Cloud Mode**: Connect to `https://antigravity.google.com` using your active conversation workspace ID.
             - **Next-Gen Antigravity Models**: Upgraded to the current ecosystem fleet: **Gemini 4 Argon** (Recommended), **Gemini 3.8 Flash**, **Claude Opus 5.5**, **Claude Sonnet 5.5**, and **GPT-OSS 12B**.
             - **BYOK Direct Gemini API**: Enter your Google AI Studio key (`AIzaSy...`) for direct, standalone cloud API calls without consuming Antigravity subscription credits.
             - **100% Native UI**: RecyclerView message stream, native Material 3 cards, native touch ripples, zero WebViews.
             - **Antigravity SDK & Backend Integration**: Native agent loop, reasoning stream, tool execution, and diff blocks.
-            - **Native Command Approvals**: Interactive Approve and Reject action buttons with status feedback.
+            - **Explicit Command Approvals**: Interactive Approve and Reject action buttons triggered only when requested.
             - **Official Google Antigravity Brand Icon**: Full-color gradient arch logo across adaptive and all density mipmaps.
             - **Native Terminal Console & Quick Slash Dock**: `/diff`, `/goal`, `/plan`, `/teamwork`, `/grill-me`.
             
             #### 📦 Download:
-            - **[Google-Antigravity-v1.5.0.apk](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/Google-Antigravity-v1.5.0.apk)** (Primary)
-            - **[Antigravity-v1.5.0.apk](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/Antigravity-v1.5.0.apk)** (Short name)
+            - **[Google-Antigravity-v${{ env.APP_VERSION }}.apk](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/Google-Antigravity-v${{ env.APP_VERSION }}.apk)** (Primary)
+            - **[Antigravity-v${{ env.APP_VERSION }}.apk](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/Antigravity-v${{ env.APP_VERSION }}.apk)** (Short name)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -88,28 +91,29 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            Google-Antigravity-v1.5.0.apk
-            Antigravity-v1.5.0.apk
+            Google-Antigravity-v${{ env.APP_VERSION }}.apk
+            Antigravity-v${{ env.APP_VERSION }}.apk
           tag_name: latest
-          name: Google Antigravity Mobile (Latest - v1.5.0)
+          name: Google Antigravity Mobile (Latest - v${{ env.APP_VERSION }})
           make_latest: true
           body: |
-            ### 🚀 Google Antigravity Native Android App (Latest - v1.5.0)
+            ### 🚀 Google Antigravity Native Android App (Latest - v${{ env.APP_VERSION }})
             
             100% Native Android application for **Google Antigravity** ([antigravity.google.com](https://antigravity.google.com)).
             
             #### 📱 Native Features:
-            - **Google Antigravity Cloud Mode**: Connect directly to `https://antigravity.google.com` using your cloud session token and active conversation workspace ID.
+            - **Intelligent Assistant & Diagnostics**: Context-aware assistant answers questions, generates code, and never triggers unrequested tool approvals.
+            - **Google Antigravity Cloud Mode**: Connect to `https://antigravity.google.com` using your active conversation workspace ID.
             - **Next-Gen Antigravity Models**: Upgraded to the current ecosystem fleet: **Gemini 4 Argon** (Recommended), **Gemini 3.8 Flash**, **Claude Opus 5.5**, **Claude Sonnet 5.5**, and **GPT-OSS 12B**.
             - **BYOK Direct Gemini API**: Enter your Google AI Studio key (`AIzaSy...`) for direct, standalone cloud API calls without consuming Antigravity subscription credits.
             - **100% Native UI**: RecyclerView message stream, native Material 3 cards, native touch ripples, zero WebViews.
             - **Antigravity SDK & Backend Integration**: Native agent loop, reasoning stream, tool execution, and diff blocks.
-            - **Native Command Approvals**: Interactive Approve and Reject action buttons with status feedback.
+            - **Explicit Command Approvals**: Interactive Approve and Reject action buttons triggered only when requested.
             - **Official Google Antigravity Brand Icon**: Full-color gradient arch logo across adaptive and all density mipmaps.
             - **Native Terminal Console & Quick Slash Dock**: `/diff`, `/goal`, `/plan`, `/teamwork`, `/grill-me`.
             
             #### 📦 Download:
-            - **[Google-Antigravity-v1.5.0.apk](https://github.com/${{ github.repository }}/releases/download/latest/Google-Antigravity-v1.5.0.apk)** (Primary)
-            - **[Antigravity-v1.5.0.apk](https://github.com/${{ github.repository }}/releases/download/latest/Antigravity-v1.5.0.apk)** (Short name)
+            - **[Google-Antigravity-v${{ env.APP_VERSION }}.apk](https://github.com/${{ github.repository }}/releases/download/latest/Google-Antigravity-v${{ env.APP_VERSION }}.apk)** (Primary with version number)
+            - **[Antigravity-v${{ env.APP_VERSION }}.apk](https://github.com/${{ github.repository }}/releases/download/latest/Antigravity-v${{ env.APP_VERSION }}.apk)** (Short name with version number)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
