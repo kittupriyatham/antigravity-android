@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer floating ring -->
+    <path
+        android:strokeColor="#4285F4"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M30,54 C30,40.7 40.7,30 54,30 C67.3,30 78,40.7 78,54 C78,67.3 67.3,78 54,78" />
+
+    <!-- Upward levitating arrow / antigravity chevron -->
+    <path
+        android:fillColor="#8AB4F8"
+        android:pathData="M54,34 L42,50 L49,50 L49,66 L59,66 L59,50 L66,50 Z" />
+
+    <!-- Google color dots -->
+    <path
+        android:fillColor="#EA4335"
+        android:pathData="M54,23 A3.5,3.5 0 1,1 54,16 A3.5,3.5 0 1,1 54,23" />
+    <path
+        android:fillColor="#FBBC05"
+        android:pathData="M78,66 A3,3 0 1,1 78,60 A3,3 0 1,1 78,66" />
+    <path
+        android:fillColor="#34A853"
+        android:pathData="M30,66 A3,3 0 1,1 30,60 A3,3 0 1,1 30,66" />
+</vector>

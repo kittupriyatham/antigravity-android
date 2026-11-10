@@ -1,0 +1,16 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Theme.Antigravity" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/antigravity_blue</item>
+        <item name="colorPrimaryVariant">@color/antigravity_blue_variant</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="android:statusBarColor">@color/status_bar_color</item>
+        <item name="android:navigationBarColor">@color/antigravity_bg</item>
+        <item name="android:windowBackground">@color/antigravity_bg</item>
+    </style>
+
+    <!-- Fullscreen WebView Theme -->
+    <style name="Theme.Antigravity.Fullscreen" parent="Theme.Antigravity">
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+</resources>
