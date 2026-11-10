@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+      - 'latest'
     branches:
       - main
   workflow_dispatch:
@@ -19,6 +20,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -47,7 +50,8 @@ jobs:
           name: Google-Antigravity
           path: Google-Antigravity.apk
 
-      - name: Create GitHub Release and Attach APK
+      # 1. Versioned Release (e.g. v1.2.0)
+      - name: Create or Update Version Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
@@ -72,5 +76,35 @@ jobs:
             #### 📦 Download:
             - **[Google-Antigravity.apk](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/Google-Antigravity.apk)** (Primary)
             - **[Antigravity.apk](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/Antigravity.apk)** (Short name)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 2. Latest Release (tag 'latest')
+      - name: Create or Update Latest Release Tag
+        if: startsWith(github.ref, 'refs/tags/v') || github.ref_name == 'latest'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            Google-Antigravity.apk
+            Antigravity.apk
+          tag_name: latest
+          name: Google Antigravity Mobile (Latest)
+          make_latest: true
+          body: |
+            ### 🚀 Google Antigravity Android Companion App (Latest)
+            
+            Latest release of Google Antigravity Android ([antigravity.google.com](https://antigravity.google.com)).
+            
+            #### 📱 What's Included:
+            - **Official Google Antigravity Brand Icon** (vector + high-density mipmaps)
+            - **Direct In-App Experience** (no launcher chooser)
+            - **Instance Switcher** (Google Cloud Remote Agents & Workstation Daemons)
+            - **Quick Slash Commands Dock** (`/diff`, `/goal`, `/plan`, `/teamwork`, `/grill-me`)
+            - **Voice Mode & Audio** enabled for Gemini Live
+            - **Push Alerts** & File attachment support
+            
+            #### 📦 Download:
+            - **[Google-Antigravity.apk](https://github.com/${{ github.repository }}/releases/download/latest/Google-Antigravity.apk)** (Primary)
+            - **[Antigravity.apk](https://github.com/${{ github.repository }}/releases/download/latest/Antigravity.apk)** (Short name)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
