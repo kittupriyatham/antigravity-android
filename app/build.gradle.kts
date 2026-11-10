@@ -11,10 +11,10 @@ android {
         applicationId = "com.google.antigravity.mobile"
         minSdk = 26
         targetSdk = 34
-        versionCode = 3
-        versionName = "1.2.0"
+        versionCode = 4
+        versionName = "1.3.0"
 
-        setProperty("archivesBaseName", "Google-Antigravity")
+        setProperty("archivesBaseName", "Google-Antigravity-v${versionName}")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -40,7 +40,7 @@ android {
     applicationVariants.all {
         outputs.all {
             val output = this as? com.android.build.gradle.internal.api.BaseVariantOutputImpl
-            output?.outputFileName = "Google-Antigravity.apk"
+            output?.outputFileName = "Google-Antigravity-v${versionName}.apk"
         }
     }
 
@@ -64,11 +64,14 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.activity:activity-ktx:1.9.2")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.5")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.5")
     
-    // Chrome Custom Tabs & Trusted Web Activity support
-    implementation("androidx.browser:browser:1.8.0")
+    // Networking & JSON for Antigravity SDK & Backend Communication
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.google.code.gson:gson:2.11.0")
     
-    // Pull-to-refresh & modern WebView enhancements
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-    implementation("androidx.webkit:webkit:1.11.0")
+    // Coroutines for async streaming
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 }

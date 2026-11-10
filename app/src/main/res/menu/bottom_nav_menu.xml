@@ -3,13 +3,17 @@
     <item
         android:id="@+id/nav_agents"
         android:icon="@drawable/ic_nav_agents"
-        android:title="Agents" />
+        android:title="Agent" />
     <item
         android:id="@+id/nav_artifacts"
         android:icon="@drawable/ic_nav_artifacts"
         android:title="Artifacts" />
     <item
+        android:id="@+id/nav_terminal"
+        android:icon="@drawable/ic_nav_terminal"
+        android:title="Terminal" />
+    <item
         android:id="@+id/nav_settings"
         android:icon="@drawable/ic_nav_settings"
-        android:title="Instances" />
+        android:title="Settings" />
 </menu>

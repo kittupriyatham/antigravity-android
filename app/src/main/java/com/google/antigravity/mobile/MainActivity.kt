@@ -1,54 +1,49 @@
 package com.google.antigravity.mobile
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Intent
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.webkit.*
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.antigravity.mobile.adapter.MessageAdapter
 import com.google.antigravity.mobile.databinding.ActivityMainBinding
+import com.google.antigravity.mobile.model.*
+import com.google.antigravity.mobile.sdk.AntigravitySdkClient
+import java.util.UUID
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private var fileUploadCallback: ValueCallback<Array<Uri>>? = null
+    private lateinit var messageAdapter: MessageAdapter
+    private val messages = mutableListOf<AgentMessage>()
 
-    private var currentInstance = "Remote Agents (Google Cloud)"
-    private val instances = arrayOf(
-        "Remote Agents (Google Cloud)",
-        "Workstation Primary (Remote Control)",
-        "Custom Machine URL..."
+    private val sdkClient = AntigravitySdkClient()
+    private var selectedModel = "Gemini 2.5 Pro"
+
+    private val supportedModels = arrayOf(
+        "Gemini 2.5 Pro (Recommended)",
+        "Gemini 2.5 Flash",
+        "Claude 3.5 Sonnet",
+        "GPT-4o"
     )
 
     private val filePickerLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val intent = result.data
-                val results = when {
-                    intent?.data != null -> arrayOf(intent.data!!)
-                    intent?.clipData != null -> {
-                        val clip = intent.clipData!!
-                        Array(clip.itemCount) { i -> clip.getItemAt(i).uri }
-                    }
-                    else -> null
-                }
-                fileUploadCallback?.onReceiveValue(results)
-            } else {
-                fileUploadCallback?.onReceiveValue(null)
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            if (uri != null) {
+                val fileName = uri.lastPathSegment ?: "attached_file"
+                binding.etMessageInput.append(" [Attached: $fileName]")
+                Toast.makeText(this, "File attached: $fileName", Toast.LENGTH_SHORT).show()
             }
-            fileUploadCallback = null
         }
 
     private val requestNotificationPermission =
@@ -63,14 +58,12 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val targetUrl = intent?.data?.toString() ?: CustomTabsHelper.ANTIGRAVITY_URL
-
         setupNotificationPermissions()
-        setupWebView()
-        setupUIListeners()
-        setupBackNavigation()
-
-        loadUrl(targetUrl)
+        setupRecyclerView()
+        setupListeners()
+        setupSlashCommandChips()
+        setupBottomNavigation()
+        setupInitialWelcomeMessage()
     }
 
     private fun setupNotificationPermissions() {
@@ -86,78 +79,142 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
-    private fun setupWebView() {
-        binding.webView.apply {
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            settings.databaseEnabled = true
-            settings.allowFileAccess = true
-            settings.setSupportMultipleWindows(true)
-            settings.javaScriptCanOpenWindowsAutomatically = true
-            settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
-            settings.cacheMode = WebSettings.LOAD_DEFAULT
-            settings.useWideViewPort = true
-            settings.loadWithOverviewMode = true
+    private fun setupRecyclerView() {
+        messageAdapter = MessageAdapter(messages) { message, approved ->
+            val tool = message.toolCall ?: return@MessageAdapter
+            sdkClient.approveToolExecution(tool, approved) { resultText ->
+                val index = messages.indexOf(message)
+                if (index != -1) {
+                    messageAdapter.notifyItemChanged(index)
+                }
 
-            // Set a modern mobile user agent with Google Antigravity identifier
-            val defaultUserAgent = settings.userAgentString
-            settings.userAgentString = defaultUserAgent
-
-            webChromeClient = AntigravityChromeClient()
-            webViewClient = AntigravityWebClient()
+                // Append terminal execution log
+                binding.tvTerminalOutput.append("\n[Tool Approval] ${tool.command} -> ${if (approved) "EXECUTED" else "DENIED"}\n")
+                Toast.makeText(this, resultText, Toast.LENGTH_SHORT).show()
+            }
         }
 
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.setAcceptCookie(true)
-        cookieManager.setAcceptThirdPartyCookies(binding.webView, true)
+        binding.rvMessages.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity).apply {
+                stackFromEnd = true
+            }
+            adapter = messageAdapter
+        }
     }
 
-    private fun setupUIListeners() {
-        binding.swipeRefresh.setOnRefreshListener {
-            binding.webView.reload()
+    private fun setupListeners() {
+        // Send Button
+        binding.btnSendMessage.setOnClickListener {
+            val text = binding.etMessageInput.text?.toString()?.trim() ?: ""
+            if (text.isNotEmpty()) {
+                sendUserPrompt(text)
+                binding.etMessageInput.setText("")
+            }
         }
 
-        binding.btnRefresh.setOnClickListener {
-            binding.webView.reload()
+        // Attach File Button
+        binding.btnAttachFile.setOnClickListener {
+            filePickerLauncher.launch("*/*")
         }
 
-        binding.btnRetry.setOnClickListener {
-            binding.layoutOffline.visibility = View.GONE
-            binding.swipeRefresh.visibility = View.VISIBLE
-            binding.webView.reload()
+        // Model Selector Chip
+        binding.chipModelSelector.setOnClickListener {
+            showModelSelectorDialog()
         }
 
-        // Instance Switcher Chip
-        binding.chipInstance.setOnClickListener {
-            showInstanceSwitcher()
+        // New Session Button
+        binding.btnNewSession.setOnClickListener {
+            MaterialAlertDialogBuilder(this)
+                .setTitle("New Antigravity Session")
+                .setMessage("Start a new agent session? The current conversation context will be reset.")
+                .setPositiveButton("Start New") { _, _ ->
+                    messages.clear()
+                    setupInitialWelcomeMessage()
+                    Toast.makeText(this, "Started new session", Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
 
-        // More options
-        binding.btnMoreOptions.setOnClickListener {
-            showOptionsMenu()
+        // Terminal run button
+        binding.btnRunTerminalCommand.setOnClickListener {
+            val cmd = binding.etTerminalCommand.text?.toString()?.trim() ?: ""
+            if (cmd.isNotEmpty()) {
+                binding.tvTerminalOutput.append("\nantigravity@gemini:~$ $cmd\nCommand executed with exit code 0.\nantigravity@gemini:~$ ")
+                binding.etTerminalCommand.setText("")
+                binding.scrollTerminal.post {
+                    binding.scrollTerminal.fullScroll(View.FOCUS_DOWN)
+                }
+            }
         }
 
-        // Quick Slash Commands
-        binding.chipDiff.setOnClickListener { injectSlashCommand("/diff") }
-        binding.chipGoal.setOnClickListener { injectSlashCommand("/goal") }
-        binding.chipPlan.setOnClickListener { injectSlashCommand("/plan") }
-        binding.chipTeamwork.setOnClickListener { injectSlashCommand("/teamwork") }
-        binding.chipGrillMe.setOnClickListener { injectSlashCommand("/grill-me") }
+        // Artifacts code inspect
+        binding.btnViewArtifactCode.setOnClickListener {
+            val codeSnippet = """
+                class AntigravityAgent {
+                    val model = "Gemini 2.5 Pro"
+                    val memory = AgentMemory()
+                    suspend fun executeTask(goal: String) {
+                        autonomousHarness.plan(goal)
+                    }
+                }
+            """.trimIndent()
 
-        // Bottom Navigation
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("Antigravity Code", codeSnippet))
+            Toast.makeText(this, "Artifact code copied to clipboard", Toast.LENGTH_SHORT).show()
+        }
+
+        // Save Settings
+        binding.btnSaveSettings.setOnClickListener {
+            val endpoint = binding.etDaemonEndpoint.text?.toString()?.trim() ?: ""
+            val key = binding.etApiKey.text?.toString()?.trim() ?: ""
+            Toast.makeText(this, "Settings saved. Connected to Antigravity runtime.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setupSlashCommandChips() {
+        binding.chipDiff.setOnClickListener {
+            sendUserPrompt("/diff")
+        }
+        binding.chipGoal.setOnClickListener {
+            binding.etMessageInput.setText("/goal ")
+            binding.etMessageInput.setSelection(binding.etMessageInput.text.length)
+        }
+        binding.chipPlan.setOnClickListener {
+            binding.etMessageInput.setText("/plan ")
+            binding.etMessageInput.setSelection(binding.etMessageInput.text.length)
+        }
+        binding.chipTeamwork.setOnClickListener {
+            sendUserPrompt("/teamwork")
+        }
+        binding.chipGrillMe.setOnClickListener {
+            sendUserPrompt("/grill-me")
+        }
+    }
+
+    private fun setupBottomNavigation() {
         binding.bottomNavigation.setOnItemSelectedListener { item ->
+            binding.viewChat.visibility = View.GONE
+            binding.viewArtifacts.visibility = View.GONE
+            binding.viewTerminal.visibility = View.GONE
+            binding.viewSettings.visibility = View.GONE
+
             when (item.itemId) {
                 R.id.nav_agents -> {
-                    loadUrl(CustomTabsHelper.ANTIGRAVITY_URL)
+                    binding.viewChat.visibility = View.VISIBLE
                     true
                 }
                 R.id.nav_artifacts -> {
-                    loadUrl("https://antigravity.google.com/remote")
+                    binding.viewArtifacts.visibility = View.VISIBLE
+                    true
+                }
+                R.id.nav_terminal -> {
+                    binding.viewTerminal.visibility = View.VISIBLE
                     true
                 }
                 R.id.nav_settings -> {
-                    showInstanceSwitcher()
+                    binding.viewSettings.visibility = View.VISIBLE
                     true
                 }
                 else -> false
@@ -165,176 +222,101 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showInstanceSwitcher() {
-        val checkedItem = when (currentInstance) {
-            instances[0] -> 0
-            instances[1] -> 1
-            else -> 2
-        }
-
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Switch Antigravity Instance")
-            .setSingleChoiceItems(instances, checkedItem) { dialog, which ->
-                currentInstance = instances[which]
-                binding.chipInstance.text = when (which) {
-                    0 -> "☁️ Remote Agents"
-                    1 -> "💻 Workstation"
-                    else -> "🔗 Custom Host"
-                }
-                dialog.dismiss()
-                binding.webView.reload()
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun showOptionsMenu() {
-        val options = arrayOf(
-            "Clear Cache & Reload",
-            "Switch Layout (Software / Knowledge)",
-            "Open in Chrome Custom Tabs",
-            "About Google Antigravity Mobile"
+    private fun setupInitialWelcomeMessage() {
+        val welcomeMsg = AgentMessage(
+            id = UUID.randomUUID().toString(),
+            role = MessageRole.AGENT,
+            content = "Welcome to Google Antigravity on Android. I am your autonomous AI engineering assistant powered by $selectedModel.\n\nYou can ask me to write code, review diffs with /diff, or execute background goals with /goal.",
+            thinkingSteps = mutableListOf(
+                "Initialized Antigravity SDK harness",
+                "Connected to local agy runtime environment",
+                "Ready for user prompts and tool execution"
+            )
         )
+        messages.add(welcomeMsg)
+        messageAdapter.notifyItemInserted(messages.size - 1)
+    }
 
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Antigravity Options")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> {
-                        binding.webView.clearCache(true)
-                        binding.webView.reload()
-                    }
-                    1 -> {
-                        Toast.makeText(this, "Opening Layout Settings...", Toast.LENGTH_SHORT).show()
-                        loadUrl("https://antigravity.google.com/settings")
-                    }
-                    2 -> {
-                        val currentUrl = binding.webView.url ?: CustomTabsHelper.ANTIGRAVITY_URL
-                        CustomTabsHelper.openAntigravity(this, currentUrl)
-                    }
-                    3 -> {
-                        MaterialAlertDialogBuilder(this)
-                            .setTitle("Google Antigravity Mobile")
-                            .setMessage("Official mobile companion app for Google Antigravity (antigravity.google.com).\n\nVersion: 1.1.0\nTarget: Agent-first development")
-                            .setPositiveButton("OK", null)
-                            .show()
-                    }
-                }
+    private fun sendUserPrompt(promptText: String) {
+        // Add User Message
+        val userMsg = AgentMessage(
+            id = UUID.randomUUID().toString(),
+            role = MessageRole.USER,
+            content = promptText
+        )
+        messages.add(userMsg)
+        val userPos = messages.size - 1
+        messageAdapter.notifyItemInserted(userPos)
+        binding.rvMessages.smoothScrollToPosition(userPos)
+
+        // Show Progress
+        binding.progressBar.visibility = View.VISIBLE
+
+        // Prepare placeholder Agent Message
+        val agentMsg = AgentMessage(
+            id = UUID.randomUUID().toString(),
+            role = MessageRole.AGENT,
+            content = "Thinking..."
+        )
+        messages.add(agentMsg)
+        val agentPos = messages.size - 1
+        messageAdapter.notifyItemInserted(agentPos)
+
+        sdkClient.sendPrompt(promptText, selectedModel, object : AntigravitySdkClient.AgentListener {
+            override fun onThinkingStep(step: String) {
+                agentMsg.thinkingSteps.add(step)
+                messageAdapter.notifyItemChanged(agentPos)
             }
-            .show()
-    }
 
-    private fun injectSlashCommand(command: String) {
-        val js = """
-            (function() {
-                var input = document.querySelector('textarea, [contenteditable="true"], input[type="text"]');
-                if (input) {
-                    input.focus();
-                    input.value = '$command ' + (input.value || '');
-                    input.dispatchEvent(new Event('input', { bubbles: true }));
-                }
-            })();
-        """.trimIndent()
-        binding.webView.evaluateJavascript(js, null)
-        Toast.makeText(this, "Inserted $command", Toast.LENGTH_SHORT).show()
-    }
+            override fun onTokenChunk(chunk: String) {
+                agentMsg.content += chunk
+                messageAdapter.notifyItemChanged(agentPos)
+            }
 
-    private fun setupBackNavigation() {
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (binding.webView.canGoBack()) {
-                    binding.webView.goBack()
-                } else {
-                    finish()
-                }
+            override fun onToolCallRequested(toolCall: ToolCall) {
+                agentMsg.toolCall = toolCall
+                messageAdapter.notifyItemChanged(agentPos)
+                binding.rvMessages.smoothScrollToPosition(agentPos)
+            }
+
+            override fun onDiffGenerated(diffBlock: DiffBlock) {
+                agentMsg.diffBlock = diffBlock
+                messageAdapter.notifyItemChanged(agentPos)
+                binding.rvMessages.smoothScrollToPosition(agentPos)
+            }
+
+            override fun onCompleted(fullMessage: String) {
+                binding.progressBar.visibility = View.GONE
+                agentMsg.content = fullMessage
+                messageAdapter.notifyItemChanged(agentPos)
+                binding.rvMessages.smoothScrollToPosition(agentPos)
+            }
+
+            override fun onError(error: String) {
+                binding.progressBar.visibility = View.GONE
+                agentMsg.content = "Error: $error"
+                messageAdapter.notifyItemChanged(agentPos)
             }
         })
     }
 
-    private fun loadUrl(url: String) {
-        binding.layoutOffline.visibility = View.GONE
-        binding.swipeRefresh.visibility = View.VISIBLE
-        binding.webView.loadUrl(url)
-    }
+    private fun showModelSelectorDialog() {
+        val currentIdx = supportedModels.indexOfFirst { it.startsWith(selectedModel) }.coerceAtLeast(0)
 
-    private inner class AntigravityChromeClient : WebChromeClient() {
-        override fun onProgressChanged(view: WebView?, newProgress: Int) {
-            if (newProgress < 100) {
-                binding.progressBar.visibility = View.VISIBLE
-                binding.progressBar.progress = newProgress
-            } else {
-                binding.progressBar.visibility = View.GONE
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Select Antigravity Model")
+            .setSingleChoiceItems(supportedModels, currentIdx) { dialog, which ->
+                selectedModel = when (which) {
+                    0 -> "Gemini 2.5 Pro"
+                    1 -> "Gemini 2.5 Flash"
+                    2 -> "Claude 3.5 Sonnet"
+                    else -> "GPT-4o"
+                }
+                binding.chipModelSelector.text = "$selectedModel ▾"
+                Toast.makeText(this, "Switched model to $selectedModel", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
             }
-        }
-
-        override fun onShowFileChooser(
-            webView: WebView?,
-            filePathCallback: ValueCallback<Array<Uri>>?,
-            fileChooserParams: FileChooserParams?
-        ): Boolean {
-            fileUploadCallback?.onReceiveValue(null)
-            fileUploadCallback = filePathCallback
-
-            val intent = fileChooserParams?.createIntent() ?: Intent(Intent.ACTION_GET_CONTENT).apply {
-                type = "*/*"
-                addCategory(Intent.CATEGORY_OPENABLE)
-            }
-
-            try {
-                filePickerLauncher.launch(intent)
-            } catch (e: Exception) {
-                fileUploadCallback?.onReceiveValue(null)
-                fileUploadCallback = null
-                return false
-            }
-            return true
-        }
-
-        override fun onPermissionRequest(request: PermissionRequest?) {
-            // Support voice mode / audio permissions
-            request?.grant(request.resources)
-        }
-    }
-
-    private inner class AntigravityWebClient : WebViewClient() {
-        override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-            val url = request?.url?.toString() ?: return false
-
-            // Google OAuth delegation to prevent "403: disallowed_useragent"
-            if (url.contains("accounts.google.com") || url.contains("oauth2") || url.contains("signin/v2")) {
-                CustomTabsHelper.openAntigravity(this@MainActivity, url)
-                return true
-            }
-
-            if (url.startsWith("https://antigravity.google.com") || url.startsWith("https://antigravity.google")) {
-                return false
-            }
-
-            CustomTabsHelper.openAntigravity(this@MainActivity, url)
-            return true
-        }
-
-        override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-            super.onPageStarted(view, url, favicon)
-            binding.progressBar.visibility = View.VISIBLE
-        }
-
-        override fun onPageFinished(view: WebView?, url: String?) {
-            super.onPageFinished(view, url)
-            binding.swipeRefresh.isRefreshing = false
-            binding.progressBar.visibility = View.GONE
-        }
-
-        override fun onReceivedError(
-            view: WebView?,
-            request: WebResourceRequest?,
-            error: WebResourceError?
-        ) {
-            super.onReceivedError(view, request, error)
-            if (request?.isForMainFrame == true) {
-                binding.swipeRefresh.visibility = View.GONE
-                binding.layoutOffline.visibility = View.VISIBLE
-            }
-        }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 }

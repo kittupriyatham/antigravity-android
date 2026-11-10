@@ -14,10 +14,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Antigravity"
-        android:networkSecurityConfig="@xml/network_security_config"
         android:hardwareAccelerated="true">
 
-        <!-- Google Antigravity Main Native Application Activity -->
+        <!-- 100% Native Google Antigravity Application Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -28,28 +27,7 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
-            <!-- Deep linking for antigravity.google.com -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="antigravity.google.com" />
-                <data
-                    android:scheme="https"
-                    android:host="antigravity.google" />
-            </intent-filter>
         </activity>
-
-        <!-- Secondary in-app WebView activity for popups or external previews -->
-        <activity
-            android:name=".WebViewActivity"
-            android:exported="false"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:theme="@style/Theme.Antigravity.Fullscreen"
-            android:windowSoftInputMode="adjustResize" />
 
         <!-- File Provider for file uploads to agent conversations -->
         <provider

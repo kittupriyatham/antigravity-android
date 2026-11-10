@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/antigravity_bg">
 
+    <!-- Top AppBar -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
@@ -17,7 +18,7 @@
             android:id="@+id/topToolbar"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:paddingHorizontal="8dp">
+            android:paddingHorizontal="12dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -25,9 +26,9 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <!-- Official Antigravity Logo -->
+                <!-- Official Logo -->
                 <ImageView
-                    android:id="@+id/ivAppLogo"
+                    android:id="@+id/ivLogo"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:contentDescription="@string/app_name"
@@ -42,18 +43,18 @@
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
-                <!-- Instance Switcher Chip -->
+                <!-- Model Selector Chip -->
                 <com.google.android.material.chip.Chip
-                    android:id="@+id/chipInstance"
+                    android:id="@+id/chipModelSelector"
                     style="@style/Widget.Material3.Chip.Assist"
                     android:layout_width="wrap_content"
                     android:layout_height="32dp"
-                    android:layout_marginStart="12dp"
-                    android:text="☁️ Remote Agents"
+                    android:layout_marginStart="10dp"
+                    android:text="Gemini 2.5 Pro ▾"
                     android:textColor="@color/antigravity_blue_light"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     app:chipBackgroundColor="@color/antigravity_card"
-                    app:chipCornerRadius="16dp"
+                    app:chipCornerRadius="14dp"
                     app:chipStrokeColor="@color/antigravity_border"
                     app:chipStrokeWidth="1dp" />
 
@@ -62,251 +63,207 @@
                     android:layout_height="1dp"
                     android:layout_weight="1" />
 
-                <!-- Refresh Button -->
+                <!-- New Session Button -->
                 <ImageButton
-                    android:id="@+id/btnRefresh"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:id="@+id/btnNewSession"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Refresh"
-                    android:src="@android:drawable/ic_menu_rotate"
-                    app:tint="@color/text_primary" />
-
-                <!-- More Options Menu -->
-                <ImageButton
-                    android:id="@+id/btnMoreOptions"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Options"
-                    android:src="@android:drawable/ic_menu_more"
+                    android:contentDescription="New Session"
+                    android:src="@android:drawable/ic_input_add"
                     app:tint="@color/text_primary" />
 
             </LinearLayout>
         </com.google.android.material.appbar.MaterialToolbar>
 
-        <!-- Loading Progress Bar -->
+        <!-- Progress Indicator -->
         <ProgressBar
             android:id="@+id/progressBar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="3dp"
-            android:max="100"
-            android:progressDrawable="@drawable/progress_bar_horizontal"
+            android:indeterminate="true"
             android:visibility="gone" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Main App Container -->
+    <!-- Main Content Container -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- Live Antigravity Web Surface -->
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/swipeRefresh"
-            android:layout_width="0dp"
+        <!-- 1. Native Chat View -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/viewChat"
+            android:layout_width="match_parent"
             android:layout_height="0dp"
-            app:layout_constraintBottom_toTopOf="@id/quickCommandsScroll"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
             app:layout_constraintTop_toTopOf="parent">
 
-            <WebView
-                android:id="@+id/webView"
+            <!-- Message List -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvMessages"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+                android:layout_height="0dp"
+                android:clipToPadding="false"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                app:layout_constraintBottom_toTopOf="@id/quickCommandsScroll"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Command Approval Banner (Contextual In-App Notification) -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardApprovalBanner"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="12dp"
-            android:visibility="gone"
-            app:cardBackgroundColor="@color/antigravity_card"
-            app:cardCornerRadius="14dp"
-            app:cardElevation="6dp"
-            app:layout_constraintBottom_toTopOf="@id/quickCommandsScroll"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:strokeColor="@color/antigravity_blue"
-            app:strokeWidth="1.5dp">
-
-            <LinearLayout
+            <!-- Quick Slash Commands Dock -->
+            <HorizontalScrollView
+                android:id="@+id/quickCommandsScroll"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="12dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="⚡ Agent Requesting Approval"
-                    android:textColor="@color/antigravity_blue_light"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvCommandPreview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:background="#0A0B0E"
-                    android:fontFamily="monospace"
-                    android:padding="8dp"
-                    android:text="git status"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp" />
+                android:layout_height="42dp"
+                android:background="@color/antigravity_surface"
+                android:overScrollMode="never"
+                android:scrollbars="none"
+                app:layout_constraintBottom_toTopOf="@id/layoutInputBar">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:gravity="end"
-                    android:orientation="horizontal">
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="12dp">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnDenyCommand"
-                        style="@style/Widget.Material3.Button.TextButton"
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDiff"
+                        style="@style/Widget.Material3.Chip.Suggestion"
                         android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:text="Reject"
-                        android:textColor="#FF6B6B"
-                        android:textSize="12sp" />
+                        android:layout_height="30dp"
+                        android:layout_marginEnd="6dp"
+                        android:text="/diff"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        app:chipBackgroundColor="@color/antigravity_card"
+                        app:chipCornerRadius="8dp"
+                        app:chipStrokeColor="@color/antigravity_border" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnApproveCommand"
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipGoal"
+                        style="@style/Widget.Material3.Chip.Suggestion"
                         android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="8dp"
-                        android:backgroundTint="@color/antigravity_blue"
-                        android:text="Approve"
-                        android:textColor="#FFFFFF"
-                        android:textSize="12sp"
-                        app:cornerRadius="8dp" />
+                        android:layout_height="30dp"
+                        android:layout_marginEnd="6dp"
+                        android:text="/goal"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        app:chipBackgroundColor="@color/antigravity_card"
+                        app:chipCornerRadius="8dp"
+                        app:chipStrokeColor="@color/antigravity_border" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipPlan"
+                        style="@style/Widget.Material3.Chip.Suggestion"
+                        android:layout_width="wrap_content"
+                        android:layout_height="30dp"
+                        android:layout_marginEnd="6dp"
+                        android:text="/plan"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        app:chipBackgroundColor="@color/antigravity_card"
+                        app:chipCornerRadius="8dp"
+                        app:chipStrokeColor="@color/antigravity_border" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipTeamwork"
+                        style="@style/Widget.Material3.Chip.Suggestion"
+                        android:layout_width="wrap_content"
+                        android:layout_height="30dp"
+                        android:layout_marginEnd="6dp"
+                        android:text="/teamwork"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        app:chipBackgroundColor="@color/antigravity_card"
+                        app:chipCornerRadius="8dp"
+                        app:chipStrokeColor="@color/antigravity_border" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipGrillMe"
+                        style="@style/Widget.Material3.Chip.Suggestion"
+                        android:layout_width="wrap_content"
+                        android:layout_height="30dp"
+                        android:text="/grill-me"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        app:chipBackgroundColor="@color/antigravity_card"
+                        app:chipCornerRadius="8dp"
+                        app:chipStrokeColor="@color/antigravity_border" />
+
                 </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+            </HorizontalScrollView>
 
-        <!-- Quick Slash Command Shortcuts Dock -->
-        <HorizontalScrollView
-            android:id="@+id/quickCommandsScroll"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:background="@color/antigravity_surface"
-            android:overScrollMode="never"
-            android:scrollbars="none"
-            app:layout_constraintBottom_toTopOf="@id/bottomNavigation">
-
+            <!-- Native Native Native Input Area -->
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:id="@+id/layoutInputBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/antigravity_surface"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="12dp">
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="8dp"
+                app:layout_constraintBottom_toBottomOf="parent">
 
-                <TextView
+                <!-- File Attachment Button -->
+                <ImageButton
+                    android:id="@+id/btnAttachFile"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Attach File"
+                    android:src="@android:drawable/ic_menu_add"
+                    app:tint="@color/text_secondary" />
+
+                <!-- Native Multiline Input -->
+                <EditText
+                    android:id="@+id/etMessageInput"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_input_field"
+                    android:hint="Ask Antigravity or type / for commands..."
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:maxLines="4"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="10dp"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
+                    android:textSize="14sp" />
+
+                <!-- Send Button -->
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/btnSendMessage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp"
-                    android:text="Quick:"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="11sp" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipDiff"
-                    style="@style/Widget.Material3.Chip.Suggestion"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:layout_marginEnd="6dp"
-                    android:text="/diff"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp"
-                    app:chipBackgroundColor="@color/antigravity_card"
-                    app:chipCornerRadius="8dp"
-                    app:chipStrokeColor="@color/antigravity_border" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipGoal"
-                    style="@style/Widget.Material3.Chip.Suggestion"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:layout_marginEnd="6dp"
-                    android:text="/goal"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp"
-                    app:chipBackgroundColor="@color/antigravity_card"
-                    app:chipCornerRadius="8dp"
-                    app:chipStrokeColor="@color/antigravity_border" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipPlan"
-                    style="@style/Widget.Material3.Chip.Suggestion"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:layout_marginEnd="6dp"
-                    android:text="/plan"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp"
-                    app:chipBackgroundColor="@color/antigravity_card"
-                    app:chipCornerRadius="8dp"
-                    app:chipStrokeColor="@color/antigravity_border" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipTeamwork"
-                    style="@style/Widget.Material3.Chip.Suggestion"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:layout_marginEnd="6dp"
-                    android:text="/teamwork"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp"
-                    app:chipBackgroundColor="@color/antigravity_card"
-                    app:chipCornerRadius="8dp"
-                    app:chipStrokeColor="@color/antigravity_border" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipGrillMe"
-                    style="@style/Widget.Material3.Chip.Suggestion"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:text="/grill-me"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp"
-                    app:chipBackgroundColor="@color/antigravity_card"
-                    app:chipCornerRadius="8dp"
-                    app:chipStrokeColor="@color/antigravity_border" />
+                    android:contentDescription="Send"
+                    app:backgroundTint="@color/antigravity_blue"
+                    app:fabCustomSize="42dp"
+                    app:srcCompat="@android:drawable/ic_menu_send"
+                    app:tint="#FFFFFF" />
 
             </LinearLayout>
-        </HorizontalScrollView>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Offline / Disconnected State -->
+        <!-- 2. Native Artifacts View -->
         <LinearLayout
-            android:id="@+id/layoutOffline"
+            android:id="@+id/viewArtifacts"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:background="@color/antigravity_bg"
-            android:gravity="center"
             android:orientation="vertical"
-            android:padding="32dp"
+            android:padding="16dp"
             android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@id/quickCommandsScroll"
+            app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
             app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:contentDescription="@string/error_offline"
-                android:src="@drawable/ic_antigravity_logo" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Offline / Connection Error"
+                android:text="Artifacts &amp; Generated Code"
                 android:textColor="@color/text_primary"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -314,22 +271,250 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center"
-                android:text="Unable to reach Google Antigravity. Check network connection or remote instance status."
+                android:layout_marginTop="4dp"
+                android:text="Active project deliverables, diffs and specifications"
                 android:textColor="@color/text_secondary"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnRetry"
+            <!-- Artifact Item 1 -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardBackgroundColor="@color/antigravity_card"
+                app:cardCornerRadius="14dp"
+                app:strokeColor="@color/antigravity_border"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📄 Google Antigravity Architecture Guide"
+                        android:textColor="@color/antigravity_blue_light"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Complete Android companion architecture, Gemini API integration, and tool approval protocol."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnViewArtifactCode"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        android:layout_marginTop="12dp"
+                        android:text="Inspect Code &amp; Copy"
+                        android:textColor="@color/antigravity_blue_light"
+                        app:cornerRadius="8dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- 3. Native Terminal View -->
+        <LinearLayout
+            android:id="@+id/viewTerminal"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="#050608"
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:backgroundTint="@color/antigravity_blue"
-                android:text="@string/retry"
-                android:textColor="#FFFFFF"
-                app:cornerRadius="10dp" />
+                android:fontFamily="monospace"
+                android:text="Google Antigravity Runtime Terminal [agy 1.2+]"
+                android:textColor="#34A853"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <ScrollView
+                android:id="@+id/scrollTerminal"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="8dp"
+                android:layout_weight="1">
+
+                <TextView
+                    android:id="@+id/tvTerminalOutput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:lineSpacingExtra="2dp"
+                    android:text="antigravity@gemini:~$ agy status\nDaemon: ACTIVE (connected via gRPC)\nWorkspace: /home/antigravity/antigravity-android\nModel: Gemini 2.5 Pro (context 1M tokens)\nReady for autonomous agent tasks.\n\nantigravity@gemini:~$ "
+                    android:textColor="#E8EAED"
+                    android:textIsSelectable="true"
+                    android:textSize="12sp" />
+            </ScrollView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:text="$ "
+                    android:textColor="#34A853"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etTerminalCommand"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_input_field"
+                    android:fontFamily="monospace"
+                    android:hint="Execute bash command..."
+                    android:imeOptions="actionDone"
+                    android:inputType="text"
+                    android:paddingHorizontal="10dp"
+                    android:textColor="#E8EAED"
+                    android:textColorHint="@color/text_secondary"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRunTerminalCommand"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:backgroundTint="@color/antigravity_blue"
+                    android:text="Run"
+                    android:textSize="12sp"
+                    app:cornerRadius="8dp" />
+            </LinearLayout>
         </LinearLayout>
+
+        <!-- 4. Native Settings View -->
+        <ScrollView
+            android:id="@+id/viewSettings"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:padding="16dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Antigravity Backend &amp; SDK"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <!-- Card: Connection -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:cardBackgroundColor="@color/antigravity_card"
+                    app:cardCornerRadius="14dp"
+                    app:strokeColor="@color/antigravity_border"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Daemon / API Endpoint"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <EditText
+                            android:id="@+id/etDaemonEndpoint"
+                            android:layout_width="match_parent"
+                            android:layout_height="42dp"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/bg_input_field"
+                            android:hint="http://localhost:8080 or agy daemon URL"
+                            android:inputType="textUri"
+                            android:paddingHorizontal="12dp"
+                            android:textColor="@color/text_primary"
+                            android:textColorHint="@color/text_secondary"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="Gemini / Vertex API Key (Optional)"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <EditText
+                            android:id="@+id/etApiKey"
+                            android:layout_width="match_parent"
+                            android:layout_height="42dp"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/bg_input_field"
+                            android:hint="AIzaSy..."
+                            android:inputType="textPassword"
+                            android:paddingHorizontal="12dp"
+                            android:textColor="@color/text_primary"
+                            android:textColorHint="@color/text_secondary"
+                            android:textSize="13sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSaveSettings"
+                            android:layout_width="match_parent"
+                            android:layout_height="44dp"
+                            android:layout_marginTop="16dp"
+                            android:backgroundTint="@color/antigravity_blue"
+                            android:text="Save &amp; Connect"
+                            app:cornerRadius="10dp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- App Info -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="Google Antigravity Mobile v1.3.0"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Native Android Architecture (No WebView)"
+                    android:textColor="@color/antigravity_blue_light"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+        </ScrollView>
 
         <!-- Bottom Navigation Bar -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
