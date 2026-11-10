@@ -1,15 +1,7 @@
 <resources>
-    <string name="app_name">Google Antigravity</string>
+    <string name="app_name">Antigravity</string>
     <string name="antigravity_url">https://antigravity.google.com/</string>
-    <string name="title_custom_tabs">Launch with Custom Tabs (Fastest &amp; SSO)</string>
-    <string name="title_webview">Launch with Embedded App View</string>
-    <string name="desc_custom_tabs">Direct integration using Chrome engine with seamless Google Account authentication, full security, and push alerts.</string>
-    <string name="desc_webview">Integrated in-app container with file chooser, swipe to refresh, and automatic Google authentication bridge.</string>
-    <string name="launch_button">Open Antigravity</string>
-    <string name="pwa_hint">Tip: You can also tap Chrome\'s menu (⋮) -> "Install app" on antigravity.google.com for the instant WebAPK experience.</string>
-    <string name="error_offline">No Internet Connection</string>
-    <string name="error_offline_desc">Please check your network and retry to connect to Google Antigravity.</string>
+    <string name="error_offline">Offline / Connection Error</string>
+    <string name="error_offline_desc">Unable to reach Google Antigravity. Check network connection or remote instance status.</string>
     <string name="retry">Retry</string>
-    <string name="notification_prompt">Stay updated with your remote agents! Antigravity notifies you when tasks finish or require command approval.</string>
-    <string name="notification_enable">Enable Notifications</string>
 </resources>

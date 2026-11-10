@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
     <application
         android:allowBackup="true"
@@ -15,12 +17,13 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:hardwareAccelerated="true">
 
-        <!-- Launcher Activity: Mode Chooser & Fast Launch -->
+        <!-- Google Antigravity Main Native Application Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -40,7 +43,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Embedded WebView Activity -->
+        <!-- Secondary in-app WebView activity for popups or external previews -->
         <activity
             android:name=".WebViewActivity"
             android:exported="false"

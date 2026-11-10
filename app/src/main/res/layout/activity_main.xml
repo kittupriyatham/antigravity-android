@@ -6,225 +6,344 @@
     android:layout_height="match_parent"
     android:background="@color/antigravity_bg">
 
-    <androidx.core.widget.NestedScrollView
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/antigravity_surface"
+        app:elevation="2dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/topToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:paddingHorizontal="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- Official Antigravity Logo -->
+                <ImageView
+                    android:id="@+id/ivAppLogo"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:contentDescription="@string/app_name"
+                    android:src="@drawable/ic_antigravity_logo" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="Antigravity"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <!-- Instance Switcher Chip -->
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipInstance"
+                    style="@style/Widget.Material3.Chip.Assist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="12dp"
+                    android:text="☁️ Remote Agents"
+                    android:textColor="@color/antigravity_blue_light"
+                    android:textSize="12sp"
+                    app:chipBackgroundColor="@color/antigravity_card"
+                    app:chipCornerRadius="16dp"
+                    app:chipStrokeColor="@color/antigravity_border"
+                    app:chipStrokeWidth="1dp" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <!-- Refresh Button -->
+                <ImageButton
+                    android:id="@+id/btnRefresh"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Refresh"
+                    android:src="@android:drawable/ic_menu_rotate"
+                    app:tint="@color/text_primary" />
+
+                <!-- More Options Menu -->
+                <ImageButton
+                    android:id="@+id/btnMoreOptions"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Options"
+                    android:src="@android:drawable/ic_menu_more"
+                    app:tint="@color/text_primary" />
+
+            </LinearLayout>
+        </com.google.android.material.appbar.MaterialToolbar>
+
+        <!-- Loading Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:max="100"
+            android:progressDrawable="@drawable/progress_bar_horizontal"
+            android:visibility="gone" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Main App Container -->
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <!-- Live Antigravity Web Surface -->
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefresh"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@id/quickCommandsScroll"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <WebView
+                android:id="@+id/webView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <!-- Command Approval Banner (Contextual In-App Notification) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardApprovalBanner"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="24dp">
+            android:layout_margin="12dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/antigravity_card"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="6dp"
+            app:layout_constraintBottom_toTopOf="@id/quickCommandsScroll"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:strokeColor="@color/antigravity_blue"
+            app:strokeWidth="1.5dp">
 
-            <!-- App Logo and Header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
                 android:orientation="vertical"
-                android:paddingTop="32dp"
-                android:paddingBottom="24dp">
-
-                <ImageView
-                    android:id="@+id/ivLogo"
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
-                    android:contentDescription="@string/app_name"
-                    android:src="@drawable/ic_launcher_foreground" />
+                android:padding="12dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/app_name"
-                    android:textColor="@color/text_primary"
-                    android:textSize="26sp"
+                    android:text="⚡ Agent Requesting Approval"
+                    android:textColor="@color/antigravity_blue_light"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/tvCommandPreview"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="Agent-first development on mobile"
-                    android:textColor="@color/antigravity_blue_light"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <!-- Card 1: Custom Tabs Mode (Recommended) -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardCustomTabs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="@color/antigravity_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/antigravity_blue"
-                app:strokeWidth="1.5dp">
+                    android:layout_marginTop="4dp"
+                    android:background="#0A0B0E"
+                    android:fontFamily="monospace"
+                    android:padding="8dp"
+                    android:text="git status"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/title_custom_tabs"
-                            android:textColor="@color/text_primary"
-                            android:textSize="17sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/ic_launcher_background"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="4dp"
-                            android:text="RECOMMENDED"
-                            android:textColor="@color/antigravity_blue_light"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/desc_custom_tabs"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
+                    android:layout_marginTop="8dp"
+                    android:gravity="end"
+                    android:orientation="horizontal">
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnLaunchCustomTabs"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="16dp"
-                        android:backgroundTint="@color/antigravity_blue"
-                        android:text="@string/launch_button"
-                        android:textAllCaps="false"
-                        android:textColor="#FFFFFF"
-                        app:cornerRadius="12dp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Card 2: Embedded In-App WebView Mode -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardWebView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="@color/antigravity_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/antigravity_border"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/title_webview"
-                        android:textColor="@color/text_primary"
-                        android:textSize="17sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/desc_webview"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnLaunchWebView"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="16dp"
-                        android:text="Launch In-App View"
-                        android:textAllCaps="false"
-                        android:textColor="@color/antigravity_blue_light"
-                        app:cornerRadius="12dp"
-                        app:strokeColor="@color/antigravity_blue" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Card 3: Notification Setup Prompt -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardNotifications"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/antigravity_surface"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/antigravity_border"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Push Notifications"
-                        android:textColor="@color/text_primary"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="@string/notification_prompt"
-                        android:textColor="@color/text_secondary"
+                        android:id="@+id/btnDenyCommand"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="Reject"
+                        android:textColor="#FF6B6B"
                         android:textSize="12sp" />
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnEnableNotifications"
-                        style="@style/Widget.Material3.Button.TextButton"
+                        android:id="@+id/btnApproveCommand"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:layout_marginTop="4dp"
-                        android:text="@string/notification_enable"
-                        android:textColor="@color/antigravity_blue_light" />
+                        android:layout_height="36dp"
+                        android:layout_marginStart="8dp"
+                        android:backgroundTint="@color/antigravity_blue"
+                        android:text="Approve"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        app:cornerRadius="8dp" />
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-            <!-- PWA Hint -->
+        <!-- Quick Slash Command Shortcuts Dock -->
+        <HorizontalScrollView
+            android:id="@+id/quickCommandsScroll"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:background="@color/antigravity_surface"
+            android:overScrollMode="never"
+            android:scrollbars="none"
+            app:layout_constraintBottom_toTopOf="@id/bottomNavigation">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:text="Quick:"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipDiff"
+                    style="@style/Widget.Material3.Chip.Suggestion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="6dp"
+                    android:text="/diff"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp"
+                    app:chipBackgroundColor="@color/antigravity_card"
+                    app:chipCornerRadius="8dp"
+                    app:chipStrokeColor="@color/antigravity_border" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipGoal"
+                    style="@style/Widget.Material3.Chip.Suggestion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="6dp"
+                    android:text="/goal"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp"
+                    app:chipBackgroundColor="@color/antigravity_card"
+                    app:chipCornerRadius="8dp"
+                    app:chipStrokeColor="@color/antigravity_border" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPlan"
+                    style="@style/Widget.Material3.Chip.Suggestion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="6dp"
+                    android:text="/plan"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp"
+                    app:chipBackgroundColor="@color/antigravity_card"
+                    app:chipCornerRadius="8dp"
+                    app:chipStrokeColor="@color/antigravity_border" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipTeamwork"
+                    style="@style/Widget.Material3.Chip.Suggestion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="6dp"
+                    android:text="/teamwork"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp"
+                    app:chipBackgroundColor="@color/antigravity_card"
+                    app:chipCornerRadius="8dp"
+                    app:chipStrokeColor="@color/antigravity_border" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipGrillMe"
+                    style="@style/Widget.Material3.Chip.Suggestion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:text="/grill-me"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp"
+                    app:chipBackgroundColor="@color/antigravity_card"
+                    app:chipCornerRadius="8dp"
+                    app:chipStrokeColor="@color/antigravity_border" />
+
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- Offline / Disconnected State -->
+        <LinearLayout
+            android:id="@+id/layoutOffline"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="@color/antigravity_bg"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/quickCommandsScroll"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:contentDescription="@string/error_offline"
+                android:src="@drawable/ic_antigravity_logo" />
+
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Offline / Connection Error"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:text="@string/pwa_hint"
+                android:text="Unable to reach Google Antigravity. Check network connection or remote instance status."
                 android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRetry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:backgroundTint="@color/antigravity_blue"
+                android:text="@string/retry"
+                android:textColor="#FFFFFF"
+                app:cornerRadius="10dp" />
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+
+        <!-- Bottom Navigation Bar -->
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNavigation"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@color/antigravity_surface"
+            app:elevation="8dp"
+            app:itemIconTint="@color/antigravity_blue_light"
+            app:itemTextColor="@color/text_primary"
+            app:labelVisibilityMode="labeled"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:menu="@menu/bottom_nav_menu" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
